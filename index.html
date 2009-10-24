@@ -43,6 +43,8 @@ var dbg = document.getElementById('debugcanvas').getContext('2d');
 document.getElementById('btn_do_it').addEventListener('click', function (evt) {
 		if (ASCIIFY.getStep() === -1) {
 			generate(ctx, document.getElementById('inp_imgurl').value);
+		} else {
+			ASCIIFY.go();
 		}
 	}, true
 );
@@ -63,20 +65,25 @@ function generate(ctx, imgsrc) {
 
 		ctx.drawImage(img, 0, 0);
 		var cellHeight = parseInt(document.getElementById('inp_fontsize').value, 10) || 20;
+
+		var tmp;
 		document.getElementById('result').style.fontSize = cellHeight;
 		ctx.font = cellHeight + "px bold Courier, monospace";
 		wkx.font = cellHeight + "px bold Courier, monospace";
 		dbg.font = cellHeight + "px bold Courier, monospace";
 		// wont work to mask things - text is no shape :(
 		// 	c.globalCompositeOperation = 'darker';
-		cellHeight = parseInt(window.getComputedStyle(document.getElementById('result'), null).lineHeight, 10);
-
+		tmp = parseInt(window.getComputedStyle(document.getElementById('result'), null).lineHeight, 10);
+		cellHeight = (isNaN(tmp)) ? cellHeight : tmp;
 		ctx.fillStyle = "rgba(0, 0, 0, 1)";
 		ctx.strokeStyle = "rgba(0, 0, 0, 1)";
 		wkx.fillStyle = "rgba(0, 0, 0, 1)";
 		wkx.strokeStyle = "rgba(0, 0, 0, 1)";
 
-		var cellWidth = ctx.measureText('W').width;
+		var cellWidth = Math.floor(cellHeight / 2) + 2;
+		if (ctx.measureText) {
+			cellWidth = ctx.measureText('W').width;
+		}
 		// 	alert(cellWidth);
 
 		ASCIIFY.setDebug(false);
@@ -99,12 +106,15 @@ function generate(ctx, imgsrc) {
 
 </script>
 <div id="capabilities">
-<p>Tested with Firefox 3.5.</p>
-<p>Your browser's canvas element supports:</p>
-<code>fillText</code>
-<code>strokeStyle</code>
-<code>putImageData</code>
-<code>getImageData</code>
+	<p>Tested with Firefox 3.5.</p>
+	<p>Your browser's canvas element supports:</p>
+	<code>fillText</code>
+	<code>strokeText</code>
+	<code>strokeStyle</code>
+	<code>putImageData</code>
+	<code>getImageData</code>
+	<code>measureText</code>
+	<code>createImageData</code>
 </div>
 <script>
 

@@ -96,7 +96,7 @@ ASCIIFY = (function () {
 		*
 		*/
 		setWeight: function (w) {
-			if ((typeof w !== 'number' || (w === NaN))) {
+			if ((typeof w !== 'number' || (isNaN(w)))) {
 				throw 'weight has to be numeric';
 			}
 			weight = w;
@@ -200,14 +200,9 @@ ASCIIFY = (function () {
 		* start the whole thing
 		*/
 		go: function () {
-			if (step === -1) {
-				step = 0;
-				ASCIIFY.setGridSize(gridSize.x, gridSize.y); // TODO
-				starttime = null;
-			} else {
-				return false;
-			}
-			starttime = starttime || (new Date()).getTime();
+			step = 0;
+			ASCIIFY.setGridSize(gridSize.x, gridSize.y); // TODO: you shouldnt need to set grid size here.
+			starttime = (new Date()).getTime();
 
 			setTimeout(ASCIIFY.next, 1);
 			return true;
