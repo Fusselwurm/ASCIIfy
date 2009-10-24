@@ -41,7 +41,9 @@ var wkx = document.getElementById('workcanvas').getContext('2d');
 var dbg = document.getElementById('debugcanvas').getContext('2d');
 
 document.getElementById('btn_do_it').addEventListener('click', function (evt) {
-		generate(ctx, document.getElementById('inp_imgurl').value);
+		if (ASCIIFY.getStep() === -1) {
+			generate(ctx, document.getElementById('inp_imgurl').value);
+		}
 	}, true
 );
 

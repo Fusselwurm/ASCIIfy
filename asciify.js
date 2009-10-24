@@ -6,27 +6,26 @@ Array.prototype.sum = function (offset, interval) {
 	return j;
 };
 
-
-
-
+/**
+* can make ASCII art
+*
+*
+*/
 ASCIIFY = (function () {
 
 	var cellDim, emptyBox, gridSize;
 
-	var step = 0;
+	var step = -1;
 	var weight = 1;
 	var imgcache = {};
+	var charcache = {};
 
 	var starttime;
 	var logfile = [];
 	var debug = false;
-// 	var chars = [' ', '.', '2', 'a', 'M', '€'];
 	var chars = [];
 	for (var i = 32; i < 127; i++) {
-		// exclude chars which extend beyond font size TODO fix so thats not  necessary an more
-// 		if ("_/[()]{}|,;@&ygjpq$Q".indexOf(String.fromCharCode(i)) == -1) {
-			chars.push(String.fromCharCode(i));
-// 		}
+		chars.push(String.fromCharCode(i));
 	}
 
 	var result = [];
@@ -81,21 +80,40 @@ ASCIIFY = (function () {
 		getResult: function () {
 			return result;
 		},
+		/**
+		* @return step -1 --> no action.
+		*/
+		getStep: function () {
+			return step;
+		},
+		/**
+		* measure for how dark the image will be.
+		*
+		*/
 		setWeight: function (w) {
 			if ((typeof w !== 'number' || (w === NaN))) {
 				throw 'weight has to be numeric';
 			}
 			weight = w;
 		},
+		/**
+		* @param dbg (boolean)
+		*/
 		setDebug: function (dbg) {
 			if (typeof dbg !== 'boolean') {
 				throw 'debug has to be boolean';
 			}
 			debug = dbg;
 		},
+		/**
+		*
+		*/
 		getLog: function () {
 			return logfile;
 		},
+		/**
+		* ASCII grid in chars width and height
+		*/
 		setGridSize: function (x, y) {
 			gridSize = {
 				x: x,
@@ -111,6 +129,9 @@ ASCIIFY = (function () {
 				result.push(line);
 			}
 		},
+		/**
+		* dimensions of a single ASCII cell...hm...
+		*/
 		setCellDimensions: function (width, height) {
 			cellDim = {
 				width: width,
@@ -122,6 +143,9 @@ ASCIIFY = (function () {
 			}
 
 		},
+		/**
+		* internal function
+		*/
 		cell: function (x, y) {
 
 			var posX = cellDim.width * x;
@@ -137,10 +161,12 @@ ASCIIFY = (function () {
 			if (typeof imgcache[checksum] == 'undefined') {
 
 				for (var i = 0; i < chars.length; i++) {
-					wkx.putImageData(emptyBox, 0, 0);
-					wkx.fillText(chars[i], 0, cellDim.height);
-					txtImg = wkx.getImageData(0, 0, cellDim.width, cellDim.height);
-
+					if (!charcache[chars[i]]) {
+						wkx.putImageData(emptyBox, 0, 0);
+						wkx.fillText(chars[i], 0, cellDim.height);
+						imgcache[chars[i]] = wkx.getImageData(0, 0, cellDim.width, cellDim.height);
+					}
+					txtImg = imgcache[chars[i]];
 
 					n = imgDiff(sourceImg, txtImg, false, weight);
 					if (Math.abs(n) < m) {
@@ -165,37 +191,37 @@ ASCIIFY = (function () {
 				ctx.fillText(chars[charidx], posX, posY + cellDim.height);
 			}
 		},
+		/**
+		* start the whole thing
+		*/
 		go: function () {
 			if (step === -1) {
 				step = 0;
-				setGridSize(gridSize.x, gridSize.y); // TODO
+				ASCIIFY.setGridSize(gridSize.x, gridSize.y); // TODO
 				starttime = null;
+			} else {
+				return false;
 			}
 			starttime = starttime || (new Date()).getTime();
+
+			setTimeout(ASCIIFY.next, 1);
+			return true;
+		},
+		/**
+		* internal function
+		*/
+		next: function () {
 			ASCIIFY.cell(step % gridSize.x, Math.floor(step / gridSize.x));
 			step += 1;
 			if (step < (gridSize.x * gridSize.y)) {
-				setTimeout(ASCIIFY.go, 1);
+				setTimeout(ASCIIFY.next, 1);
 			} else {
 				console.log('RENDERING FINISHED IN : ' + (new Date().getTime() - starttime));
 				if (typeof ASCIIFY.onFinish == 'function') {
 					ASCIIFY.onFinish(serializeMatrix(result));
 				}
-				step = 0;
-// 				ASCIIFY.getClean();
+				step = -1;
 			}
-		},
-		getClean: function () {
-			var img = ctx.getImageData(0, 0, 450, 450);
-			var data = img.data
-			for (var i = 0; i < data.length; i += 4) {
-				if (data[i + 1] > 0) { // if green
-					data[i] = data[i + 1] = data[i + 2] = 0;
-				} else { // if not green, set white
-					data[i] = data[i + 1] = data[i + 2] = 255;
-				}
-			}
-			ctx.putImageData(img, 0, 0);
 		}
 	};
 }());
