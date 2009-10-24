@@ -6,6 +6,11 @@ Array.prototype.sum = function (offset, interval) {
 	return j;
 };
 
+String.prototype.trim = String.prototype.trim || function () {
+	return this.replace(/^\s+|\s+$/g, "");
+};
+
+
 /**
 * can make ASCII art
 *
