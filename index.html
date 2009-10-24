@@ -1,0 +1,123 @@
+<html>
+	<head>
+		<meta http-equiv="Content-Type" content="text/html; charset=utf-8" >
+		<title>ASCII art generator</title>
+		<script type="text/javascript" src="asciify.js"></script>
+	</head>
+	<style>
+		#generator {border: 1px solid black;}
+		pre {padding: 0px; margin: 0px; border: none;}
+		blockquote {padding: .3em; border: 1px solid #aaa;}
+		canvas {margin: 5px;}
+		#capabilities {float: right; border: 1px solid yellow;}
+		#forms {border: 2px groove black; padding: 3px;}
+		#result {font: Courier;border: 1px solid green; display: block;float: right;}
+	</style>
+<body>
+<div id="forms" >
+<label for="inp_imgurl">image URL</label>
+<input type="text" size="40" id="inp_imgurl" value="http://www.google.de/intl/de_de/images/logo.gif" />
+<label for="inp_imgurl">font size [px]</label>
+<input type="text" size="3" id="inp_fontsize" value="10" />
+<label for="inp_weight">darkness (float)</label>
+<input type="text" size="4" id="inp_weight" value="0.85" />
+<button id="btn_do_it">do it</button>
+
+</div>
+<pre id="result"></pre>
+<canvas ID="generator" width="450" height="450" title="main canvas">
+your browser does not support canvas. do a browser update. if that doesnt help: stop using that gdamn internet explorer
+</canvas>
+
+<canvas id="debugcanvas" width="400" height="200" title="debug" style="clear: both; border: 1px solid blue;"></canvas>
+<canvas id="workcanvas" width="20" height="40" title="temporary image stuff" style="clear: both; border: 1px solid red;"></canvas>
+
+
+<script type="text/javascript">
+
+var cnvs = document.getElementById('generator');
+var ctx = cnvs.getContext('2d');
+var wkx = document.getElementById('workcanvas').getContext('2d');
+var dbg = document.getElementById('debugcanvas').getContext('2d');
+
+document.getElementById('btn_do_it').addEventListener('click', function (evt) {
+		generate(ctx, document.getElementById('inp_imgurl').value);
+	}, true
+);
+
+function generate(ctx, imgsrc) {
+
+
+	ctx.fillStyle = "rgba(255, 255, 255, 1)";
+	ctx.fillRect(0, 0, 450, 450);
+
+ 	var img = new Image();
+	img.onload = function () {
+
+		if ((img.width > 450) || (img.height > 450)) {
+			alert('image dimensions may not exceed 450px * 450px');
+			return;
+		}
+
+		ctx.drawImage(img, 0, 0);
+		var cellHeight = parseInt(document.getElementById('inp_fontsize').value, 10) || 20;
+		document.getElementById('result').style.fontSize = cellHeight;
+		ctx.font = cellHeight + "px bold Courier, monospace";
+		wkx.font = cellHeight + "px bold Courier, monospace";
+		dbg.font = cellHeight + "px bold Courier, monospace";
+		// wont work to mask things - text is no shape :(
+		// 	c.globalCompositeOperation = 'darker';
+		cellHeight = parseInt(window.getComputedStyle(document.getElementById('result'), null).lineHeight, 10);
+		alert(cellHeight);
+
+		ctx.fillStyle = "rgba(0, 0, 0, 1)";
+		ctx.strokeStyle = "rgba(0, 0, 0, 1)";
+		wkx.fillStyle = "rgba(0, 0, 0, 1)";
+		wkx.strokeStyle = "rgba(0, 0, 0, 1)";
+
+		var cellWidth = ctx.measureText('W').width;
+		// 	alert(cellWidth);
+
+		ASCIIFY.setDebug(false);
+		ASCIIFY.setGridSize(Math.floor(img.width / cellWidth) + 1, Math.floor(img.height / cellHeight) + 1);
+// 		ASCIIFY.setGridSize(5, 5);
+		ASCIIFY.setWeight(parseFloat(document.getElementById('inp_weight').value));
+		ASCIIFY.setCellDimensions(cellWidth, cellHeight);
+		ASCIIFY.onProgress = function (chars) {
+			document.getElementById('result').style.color = 'red';
+			document.getElementById('result').textContent = chars + ' ...';
+		};
+		ASCIIFY.onFinish = function (chars) {
+			document.getElementById('result').style.color = 'black';
+			document.getElementById('result').textContent = chars;
+		};
+		ASCIIFY.go();
+	};
+ 	img.src = document.location.protocol + '//' + document.location.hostname + document.location.pathname + 'getImage.php?url=' + imgsrc;
+}
+
+</script>
+<div id="capabilities">
+<p>Tested with Firefox 3.5.</p>
+<p>Your browser's canvas element supports:</p>
+<code>fillText</code>
+<code>strokeStyle</code>
+<code>putImageData</code>
+<code>getImageData</code>
+</div>
+<script>
+
+	(function () {
+		var a = document.getElementById('capabilities').getElementsByTagName('code');
+		for (var i = 0; i < a.length; i++) {
+
+			if (ctx[a[i].textContent.trim()]) {
+				a[i].style.backgroundColor = '#9c9';
+			} else {
+				a[i].style.backgroundColor = '#c99';
+			}
+		}
+	}());
+</script>
+</body>
+</html>
